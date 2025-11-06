@@ -2,7 +2,9 @@ name: CI Gatekeeper
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main" , "fix/broken-code-test" ]
+  push:
+    branches: [ "main" ]  # Also run on direct pushes to main
 
 jobs:
   build-and-test:
@@ -26,3 +28,5 @@ jobs:
 
       - name: Run tests
         run: npm run test
+      - name: Build project
+        run: npm run build
