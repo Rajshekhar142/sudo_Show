@@ -43,3 +43,5 @@ jobs:
                 context: .
                 push: true
                 tags: ghcr.io/rajshekhar142/sudo-show:latest
+            - name: Trigger Render Deploy
+              run: curl "${{ secrets.RENDER_DEPLOY_HOOK }}"
