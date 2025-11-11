@@ -2,46 +2,54 @@ name: Deploy to Production
 
 # Run this workflow on every push to the main branch
 on:
-    push:
-        branches: ["main"]
+  push:
+    branches: ["main"]
+
 jobs:
-    build-and-push-image:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            packages: write # <-- Give permission to push to ghcr.id-token: 
-        
-        steps:
-            - name: Check out repository code
-              uses: actions/checkout@v4
-            - name: Set up Node.js
-              uses: actions/setup-node@v4
-              with:
-                node-version: '20'
-                cache: 'npm'
-        # Run the CI checks first
-            - name: Install dependencies
-              run: npm ci
-            - name: Run linter
-              run: npm run lint
-            - name: Run tests
-              run: npm run test
-            - name: Run build
-              run: npm run build
-        
-        # Log in to Github Container registry
-            - name: Log in to ghcr.io
-              uses: docker/login-action@v3
-              with:
-                registry: ghcr.io
-                username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_TOKEN}}
-        # 3. Build and push the Docker image
-            - name: Build and push image
-              uses: docker/build-push-action@v5
-              with:
-                context: .
-                push: true
-                tags: ghcr.io/rajshekhar142/sudo-show:latest
-            - name: Trigger Render Deploy
-              run: curl "${{ secrets.RENDER_DEPLOY_HOOK }}"
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Permission to push to ghcr.io
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --- Run the CI checks first ---
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Run build
+        run: npm run build
+
+      # --- Log in to Github Container registry ---
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # Fixed a minor space here too
+
+      # --- Build and push the Docker image ---
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/rajshekhar142/sudo-show:latest # Make sure this name is lowercase
+
+      - name: Trigger Render Deploy
+        run: curl "${{ secrets.RENDER_DEPLOY_HOOK }}"
